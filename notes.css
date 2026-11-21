@@ -1,0 +1,88 @@
+.home .home-app-grid {
+  grid-template-columns: repeat(2, 60px);
+  justify-content: start;
+  gap: 24px 26px;
+}
+.memo-icon {
+  background: linear-gradient(#fed654 0 26%, #fff 26%);
+  color: #675321;
+  font-size: 27px;
+  padding-top: 9px;
+}
+#notesView {
+  background: #f2f2f7;
+  color: #1c1c1e;
+  padding-top: 48px;
+}
+#notesView [hidden] { display: none; }
+.memo-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  flex: none;
+}
+.memo-bar button {
+  min-height: 44px;
+  padding: 0;
+  color: #785500;
+  font-size: 16px;
+}
+.memo-bar button:focus-visible,
+.memo-entry:focus-visible {
+  outline: 2px solid #906500;
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+.memo-page {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 16px 36px;
+}
+.memo-page h1 {
+  margin: 0 0 12px;
+  font-size: 32px;
+  line-height: 1.18;
+}
+#memoEntries {
+  padding: 0 14px;
+  background: #fff;
+  border-radius: 12px;
+}
+.memo-entry {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  text-align: left;
+  color: inherit;
+}
+.memo-entry + .memo-entry { border-top: 1px solid #e5e5ea; }
+.memo-entry strong, .memo-entry small { display: block; }
+.memo-entry strong { font-size: 16px; }
+.memo-entry small {
+  margin-top: 4px;
+  color: #62626a;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.memo-count {
+  padding: 12px 16px 32px;
+  text-align: center;
+  font-size: 14px;
+  color: #62626a;
+}
+#memoDetail { padding-top: 12px; }
+#memoTitle { font-size: 23px; }
+#memoBody {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+  font-size: 17px;
+  line-height: 1.55;
+}
+#memoStatus { margin-top: 12px; color: #62626a; }
