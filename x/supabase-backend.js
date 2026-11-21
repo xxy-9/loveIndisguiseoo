@@ -1,7 +1,14 @@
 (() => {
   const settings = window.lidSupabaseConfig;
   const configured = Boolean(settings?.url && /^sb_publishable_[\w-]+$/.test(settings.publishableKey));
-  const db = configured ? window.supabase.createClient(settings.url, settings.publishableKey) : null;
+  const { hostname, origin, protocol } = location;
+  const useVercelProxy = protocol !== 'file:' && hostname !== 'localhost' &&
+    hostname !== '127.0.0.1' && !hostname.endsWith('.github.io');
+  const endpoint = useVercelProxy ? origin + '/supabase/' : settings?.url;
+  // Keep existing Supabase sessions under the original project storage key.
+  const db = configured ? window.supabase.createClient(endpoint, settings.publishableKey, {
+    auth: { storageKey: 'sb-' + new URL(settings.url).hostname.split('.')[0] + '-auth-token' }
+  }) : null;
   const bucket = db?.storage.from('lid-topic-images');
   const pageSize = 30;
 
@@ -122,7 +129,23 @@
     return unwrap(await db.rpc('lid_reaction_state'));
   }
 
+  async function confirmEmailFromLink() {
+    if (!db) return null;
+    const tokenHash = new URLSearchParams(location.hash.slice(1)).get('lid_confirm_token');
+    if (!tokenHash) return null;
+    const pageUrl = new URL(location.href);
+    pageUrl.hash = '';
+    history.replaceState(history.state, '', pageUrl.href);
+    try {
+      unwrap(await db.auth.verifyOtp({ token_hash: tokenHash, type: 'email' }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   window.lidBackend = {
+    emailConfirmation: confirmEmailFromLink(),
     configured,
     async authenticate(mode, email, password, name) {
       if (mode === 'signup') {

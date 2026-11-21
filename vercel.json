@@ -1,0 +1,32 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/supabase/auth/v1/:path*",
+      "destination": "https://utornqicmsgrwpdbtppe.supabase.co/auth/v1/:path*"
+    },
+    {
+      "source": "/supabase/rest/v1/:path*",
+      "destination": "https://utornqicmsgrwpdbtppe.supabase.co/rest/v1/:path*"
+    },
+    {
+      "source": "/supabase/storage/v1/:path*",
+      "destination": "https://utornqicmsgrwpdbtppe.supabase.co/storage/v1/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/supabase/:path*",
+      "headers": [
+        {
+          "key": "x-vercel-enable-rewrite-caching",
+          "value": "0"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
+    }
+  ]
+}

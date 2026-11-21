@@ -84,6 +84,7 @@
   const api = (path, method = 'GET', data) => backend.api(path, method, data);
   const loginForm = byId('xPlayerLogin');
   const loginStatus = byId('xLoginStatus');
+  let emailConfirmation = backend.emailConfirmation;
 
   async function resumePlayer(name) {
     const player = await (name ? api('player', 'POST', { name }) : api('player'));
@@ -99,10 +100,11 @@
       invalid_credentials: '邮箱或密码不正确。',
       email_not_confirmed: '请先打开邮箱中的验证邮件。',
       user_already_exists: '该邮箱已注册，请直接登录。',
+      email_address_not_authorized: '验证邮件未能发送到此邮箱，请联系站点管理员。',
       over_email_send_rate_limit: '验证邮件发送过于频繁，请稍后再试。'
     };
     loginStatus.textContent = messages[error.code] ||
-      (error.message === '404' ? '请填写昵称后再次登录。' : '暂时无法连接，请稍后再试。');
+      (error.message === '404' ? '请填写昵称后再次登录。' : '注册或登录请求失败，请稍后再试。');
   }
 
   async function signIn(event) {
@@ -1090,7 +1092,17 @@
     loginStatus.textContent = '';
     if (!connecting) {
       connecting = true;
-      resumePlayer().catch(error => {
+      const pendingConfirmation = emailConfirmation;
+      emailConfirmation = null;
+      (async () => {
+        const confirmed = await pendingConfirmation;
+        if (confirmed === false) {
+          loginStatus.textContent = '邮箱验证失败，链接可能已过期。';
+          return;
+        }
+        await resumePlayer();
+        if (confirmed) showToast('邮箱已验证');
+      })().catch(error => {
         if (error.message !== '401') handleLoginError(error);
       }).finally(() => { connecting = false; });
     }
