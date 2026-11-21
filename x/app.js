@@ -884,8 +884,9 @@
     const gallery = node('div','','x-post-gallery');
     gallery.dataset.count = String(post.images.length);
     post.images.forEach((asset, index) => {
+      const path = asset.replace(/^\//, "");
       const src = /^https?:\/\//i.test(asset) ? asset :
-        storyAsset(asset.startsWith('/') ? asset.slice(1) : 'x/posts/' + asset + '.jpg');
+        storyAsset(path.includes('/') ? path : 'x/posts/' + path + '.jpg');
       const button = node('button');
       button.type = 'button';
       button.setAttribute('aria-label','查看配图 '+(index+1));
