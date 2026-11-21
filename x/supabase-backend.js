@@ -10,6 +10,7 @@
     auth: { storageKey: 'sb-' + new URL(settings.url).hostname.split('.')[0] + '-auth-token' }
   }) : null;
   const bucket = db?.storage.from('lid-topic-images');
+  const avatarBucket = db?.storage.from('lid-player-avatars');
   const pageSize = 30;
 
   function unwrap({ data, error }) {
@@ -23,25 +24,49 @@
     return session.user;
   }
 
-  function player(row) {
-    return { name: row.name, handle: String(row.handle).padStart(2, '0') };
+  function player(row, avatars) {
+    return {
+      name: row.name, handle: String(row.handle).padStart(2, '0'),
+      authorId: row.user_id, avatarUrl: avatars?.get(row.avatar_path)
+    };
+  }
+
+  const profileFields = 'user_id,name,handle,avatar_path';
+
+  async function avatarUrls(profiles) {
+    const paths = [...new Set(profiles.map(row => row.avatar_path).filter(Boolean))];
+    if (!paths.length) return new Map();
+    const { data } = await avatarBucket.createSignedUrls(paths, 3600);
+    return new Map((data ?? []).map(item => [item.path, item.signedUrl]));
+  }
+
+  async function profilePlayer(row) {
+    return player(row, await avatarUrls([row]));
   }
 
   async function profile(method, data) {
     const user = await authenticatedUser();
     const table = () => db.from('lid_profiles');
-    const select = () => table().select('name,handle').eq('user_id', user.id).maybeSingle();
+    const select = () => table().select(profileFields).eq('user_id', user.id).maybeSingle();
     if (method === 'PUT') {
-      return player(unwrap(await table().update({ name: data.name.trim() })
-        .eq('user_id', user.id).select('name,handle').single()));
+      const updates = { name: data.name.trim() };
+      if (data.avatar) {
+        const path = user.id + '/avatar.jpg';
+        unwrap(await avatarBucket.upload(path, data.avatar, {
+          upsert: true, contentType: 'image/jpeg', cacheControl: '0'
+        }));
+        updates.avatar_path = path;
+      }
+      return profilePlayer(unwrap(await table().update(updates)
+        .eq('user_id', user.id).select(profileFields).single()));
     }
     const existing = unwrap(await select());
-    if (existing) return player(existing);
+    if (existing) return profilePlayer(existing);
     const candidate = data?.name || user.user_metadata?.lid_display_name;
     const name = typeof candidate === 'string' ? candidate.trim() : '';
     if (!name) throw new Error('404');
     unwrap(await table().upsert({ user_id: user.id, name }, { onConflict: 'user_id', ignoreDuplicates: true }));
-    return player(unwrap(await select()));
+    return profilePlayer(unwrap(await select()));
   }
 
   async function pagination(query, before) {
@@ -54,18 +79,23 @@
     return { entries, next: rows.length > pageSize ? entries.at(-1).id : null };
   }
 
+  async function topicPosts(column, id, before) {
+    const { entries, next } = await pagination(db.from('lid_topic_posts')
+      .select('id,body,images,created_at,author:lid_profiles(' + profileFields + ')').eq(column, id), before);
+    const paths = [...new Set(entries.flatMap(row => row.images))];
+    const [signed, avatars] = await Promise.all([
+      paths.length ? bucket.createSignedUrls(paths, 3600).then(unwrap) : [],
+      avatarUrls(entries.map(row => row.author))
+    ]);
+    const urls = new Map(signed.map(item => [item.path, item.signedUrl]));
+    return { entries: entries.map(row => ({
+      id: row.id, text: row.body, createdAt: row.created_at, author: player(row.author, avatars),
+      images: row.images.map(path => urls.get(path)).filter(Boolean)
+    })), next };
+  }
+
   async function topics(id, method, before, form) {
-    if (method === 'GET') {
-      const { entries, next } = await pagination(db.from('lid_topic_posts')
-        .select('id,body,images,created_at,author:lid_profiles(name,handle)').eq('topic', id), before);
-      const paths = [...new Set(entries.flatMap(row => row.images))];
-      const signed = paths.length ? unwrap(await bucket.createSignedUrls(paths, 3600)) : [];
-      const urls = new Map(signed.map(item => [item.path, item.signedUrl]));
-      return { entries: entries.map(row => ({
-        id: row.id, text: row.body, createdAt: row.created_at, author: player(row.author),
-        images: row.images.map(path => urls.get(path)).filter(Boolean)
-      })), next };
-    }
+    if (method === 'GET') return topicPosts('topic', id, before);
     const user = await authenticatedUser();
     const submission = form.get('submission');
     const files = form.getAll('images');
@@ -98,20 +128,47 @@
     }
   }
 
-  async function comments(id, method, before, data) {
+  async function commentState(ids) {
+    if (!ids.length) return new Map();
+    const rows = unwrap(await db.rpc('lid_comment_state', { p_ids: ids }));
+    return new Map(rows.map(row => [String(row.comment_id), row]));
+  }
+
+  async function comments(id, method, before, parent, data) {
     const table = db.from('lid_comments');
     if (method === 'GET') {
-      const { entries, next } = await pagination(table
-        .select('id,body,created_at,author:lid_profiles(name,handle)').eq('post_id', id), before);
+      const query = table.select('id,body,created_at,author:lid_profiles(' + profileFields + ')').eq('post_id', id);
+      const { entries, next } = await pagination(
+        parent === null ? query.is('parent_comment_id', null) : query.eq('parent_comment_id', parent), before);
+      const [states, avatars] = await Promise.all([
+        commentState(entries.map(row => row.id)), avatarUrls(entries.map(row => row.author))
+      ]);
       return { entries: entries.map(row => ({
-        id: row.id, body: row.body, createdAt: row.created_at, name: row.author.name, playerId: row.author.handle
+        id: row.id, body: row.body, createdAt: row.created_at, author: player(row.author, avatars),
+        ...states.get(String(row.id))
       })), next };
     }
     const user = await authenticatedUser();
     unwrap(await table.upsert({
-      author_id: user.id, post_id: id, body: data.body, submission_id: data.submission
+      author_id: user.id, post_id: id, body: data.body, submission_id: data.submission,
+      parent_comment_id: data.parent ?? null
     }, { onConflict: 'post_id,author_id,submission_id', ignoreDuplicates: true }));
     return { ok: true };
+  }
+
+  async function likeComment(id, data) {
+    const user = await authenticatedUser();
+    const table = db.from('lid_comment_likes');
+    if (data.value) {
+      unwrap(await table.upsert({ comment_id: id, user_id: user.id }, {
+        onConflict: 'comment_id,user_id', ignoreDuplicates: true
+      }));
+    } else {
+      unwrap(await table.delete().eq('comment_id', id).eq('user_id', user.id));
+    }
+    const state = (await commentState([id])).get(id);
+    if (!state) throw new Error('404');
+    return state;
   }
 
   async function reactions(method, data) {
@@ -167,10 +224,13 @@
       const [route, query = ''] = path.split('?');
       const [section, encoded = ''] = route.split('/');
       const id = decodeURIComponent(encoded);
-      const before = new URLSearchParams(query).get('before');
+      const params = new URLSearchParams(query);
+      const before = params.get('before');
       if (section === 'player') return profile(method, data);
       if (section === 'topics') return topics(id, method, before, data);
-      if (section === 'comments') return comments(id, method, before, data);
+      if (section === 'player-posts' && method === 'GET') return topicPosts('author_id', id, before);
+      if (section === 'comments') return comments(id, method, before, params.get('parent'), data);
+      if (section === 'comment-likes' && method === 'PUT') return likeComment(id, data);
       if (section === 'reactions') return reactions(method, data);
       throw new Error('404');
     }

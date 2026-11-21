@@ -416,7 +416,7 @@ img.music-playlist-art{display:block;width:100%;object-fit:cover;height:auto}
 .kkt-call-icon svg{display:block;width:24px;height:24px;fill:currentColor}
 .kkt-call-label{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
 </style>
-<link rel="stylesheet" href="x/app.css?v=player-account-1">
+<link rel="stylesheet" href="x/app.css?v=player-threads-1">
 <link rel="stylesheet" href="photos/app.css">
 <link rel="stylesheet" href="./notes.css">
 </head>
@@ -566,7 +566,7 @@ img.music-playlist-art{display:block;width:100%;object-fit:cover;height:auto}
     <form method="dialog"><button type="submit" aria-label="关闭配图">×</button></form>
     <img id="xPostPhoto" alt="贴文配图">
   </dialog>
-  <form id="xReplyBar" hidden><div class="x-reply-controls"><input id="xCommentText" type="text" placeholder="发布你的回复" aria-label="发布你的回复" maxlength="1000" required><button id="xCommentSubmit" type="submit" class="x-save" hidden>发布</button></div><div id="xCommentStatus" role="status"></div></form>
+  <form id="xReplyBar" hidden><div id="xReplyTarget" hidden><span id="xReplyTargetName"></span><button id="xReplyTargetClear" type="button">取消</button></div><div class="x-reply-controls"><input id="xCommentText" type="text" placeholder="发布你的回复" aria-label="发布你的回复" maxlength="1000" required><button id="xCommentSubmit" type="submit" class="x-save" hidden>发布</button></div><div id="xCommentStatus" role="status"></div></form>
   <nav id="xNav" class="x-nav" aria-label="X 导航" hidden>
     <button type="button" data-x-nav="home" aria-label="首页"><svg class="x-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3z"/></svg></button>
     <button type="button" data-x-nav="search" aria-label="搜索"><svg class="x-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></button>
@@ -1563,8 +1563,8 @@ selectedRole=loadSession();refreshAccountCards();bindUnlockControls();bindAccoun
 </script>
 <script src="x/supabase-sdk.js"></script>
   <script src="x/supabase-config.js"></script>
-  <script src="x/supabase-backend.js?v=vercel-proxy-1"></script>
-  <script src="x/app.js?v=supabase-3"></script>
+  <script src="x/supabase-backend.js?v=player-threads-1"></script>
+  <script src="x/app.js?v=player-threads-1"></script>
 <script src="photos/app.js?v=dog-album-3"></script>
 <script src="./notes.js"></script>
 </body>

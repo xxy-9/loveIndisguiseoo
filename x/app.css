@@ -143,3 +143,16 @@
 .x-topic-dialog-head svg{width:18px;height:18px}
 .x-topic-dialog .x-topic-form{padding:2px 18px 18px;border:0;gap:10px}
 .x-topic-dialog .x-save{justify-self:end}
+
+.x-profile-tabs button[hidden],#xReplyTarget[hidden],.x-thread-more[hidden]{display:none}
+.x-player-reply .x-thread-reply{min-height:62px}
+.x-player-reply .x-post-date{display:block;font-size:11px;margin-top:4px}
+.x-player-reply-actions{justify-content:flex-start;gap:24px}
+.x-player-reply-actions button{min-width:36px;min-height:28px}
+.x-post-mode .x-player-reply-actions [data-reply-like][aria-pressed=true]{color:#f91880}
+.x-thread-more,#xReplyTarget button{background:none;color:#006ba6;font-size:13px}
+.x-thread-more{padding:8px 16px;min-height:36px}
+.x-thread-expand{position:relative;margin-left:49px}
+.x-player-reply:has(> .x-thread-expand[aria-expanded=true]) > .x-thread-expand::before{content:"";position:absolute;left:-16px;top:0;bottom:0;width:2px;background:#eff3f4}
+#xReplyTarget{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;color:#536471;font-size:13px}
+#xReplyTarget button{padding:5px 0}

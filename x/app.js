@@ -143,14 +143,16 @@
   let draft = '';
   let uploadRun = 0;
   let playerAvatar = null;
-  function avatar(account) {
-    if(account.npc)return account.avatar||'x/player.svg';
-    return account.id === 'player' ? playerAvatar || 'x/player.svg' : 'x/' + account.id + '.jpg';
+  function avatar(person) {
+    if (person.authorId) return person.avatarUrl || (person === account && playerAvatar) || 'x/player.svg';
+    if(person.npc)return person.avatar||'x/player.svg';
+    return person.id === 'player' ? playerAvatar || 'x/player.svg' : 'x/' + person.id + '.jpg';
   }
   function avatarImage(account) {
     const image = document.createElement('img');
     image.className = 'x-avatar';
     image.alt = '';
+    image.addEventListener('error', () => { image.src = 'x/player.svg'; }, {once:true});
     image.src = avatar(account);
     return image;
   }
@@ -221,13 +223,25 @@
     show('topic');
   }
 
+  function sharedPlayer(author) {
+    return author.authorId === account?.authorId ? account : { ...author, id: 'player:' + author.authorId };
+  }
+
+  function playerAvatarButton(author) {
+    const button = node('button','','x-avatar-button');
+    button.type = 'button';
+    button.setAttribute('aria-label',author.name + ' 的个人资料');
+    button.append(avatarImage(author));
+    button.onclick = () => openProfile(author);
+    return button;
+  }
+
   function sharedTopicCard(entry) {
     const article = node('article','','x-post');
     const header = node('div','','x-post-author');
     const author = node('div','','x-post-byline');
     author.append(node('strong',entry.author.name),node('span','@'+entry.author.handle,'x-post-muted'));
-    const image = avatarImage({npc:true});
-    header.append(image,author);
+    header.append(playerAvatarButton(sharedPlayer(entry.author)),author);
     article.append(header);
     if (entry.text) article.append(node('p',entry.text,'x-post-text x-topic-copy'));
     if (entry.images.length) article.append(postGallery({images:entry.images}));
@@ -374,6 +388,42 @@
       return button;
     }));
   }
+  function renderPlayerPosts(list, selected) {
+    const entries = node('div');
+    const status = node('p','','x-empty');
+    status.setAttribute('role','status');
+    const more = node('button','加载更多','x-thread-more');
+    more.type = 'button';
+    more.hidden = true;
+    list.replaceChildren(entries,status,more);
+    let cursor = null;
+    async function load() {
+      const current = () => page === 'profile' && profile === selected && list.contains(entries);
+      more.hidden = true;
+      status.hidden = false;
+      status.textContent = '正在加载贴文…';
+      try {
+        const params = new URLSearchParams();
+        if (cursor !== null) params.set('before',cursor);
+        const result = await api('player-posts/' + encodeURIComponent(selected.authorId) + '?' + params);
+        if (!current()) return;
+        entries.append(...result.entries.map(sharedTopicCard));
+        cursor = result.next;
+        status.hidden = Boolean(entries.childElementCount);
+        status.textContent = status.hidden ? '' : '暂无贴文';
+        more.textContent = '加载更多';
+        more.hidden = cursor === null;
+      } catch {
+        if (!current()) return;
+        status.textContent = '暂时无法加载贴文。';
+        more.textContent = '重试';
+        more.hidden = false;
+      }
+    }
+    more.onclick = load;
+    load();
+  }
+
   function renderProfile() {
     byId('xProfileAvatar').replaceChildren(avatarImage(profile));
     byId('xProfileName').textContent = profile.name;
@@ -385,13 +435,19 @@
     byId('xFollowingProfile').hidden = profile !== account;
     byId('xFollowingProfile').textContent = followedAccounts.length + ' 正在关注';
     byId('xProfileTabs').querySelectorAll('[data-profile-tab]').forEach(button=>{
+      button.hidden = Boolean(profile.authorId && button.dataset.profileTab === 'replies');
       button.setAttribute('aria-selected',String(button.dataset.profileTab===profileTab));
       button.onclick=()=>{profileTab=button.dataset.profileTab;renderProfile();};
     });
+    const list=byId('xProfilePosts');
+    if (profile.authorId) {
+      renderPlayerPosts(list,profile);
+      return;
+    }
     const authored=posts.filter(post=>post.author===profile.id&&(profileTab==='replies'?Boolean(post.parent):!post.parent));
     const rootTime=post=>{let top=post;while(top.parent)top=posts.find(p=>p.id===top.parent);return postTime(top);};
     authored.sort((a,b)=>rootTime(b)-rootTime(a)||posts.indexOf(b)-posts.indexOf(a));
-    const list=byId('xProfilePosts');list.replaceChildren();
+    list.replaceChildren();
     if(!authored.length)list.append(node('p',profileTab==='replies'?'暂无回复':'暂无贴文','x-empty'));
     for(const post of authored){
       if(profileTab==='replies'){
@@ -457,7 +513,7 @@
   function editAvatar() {
     if (profile !== account) return;
     editing = account;
-    draft = '';
+    draft = account.avatarUrl ? '' : playerAvatar || '';
     file.value = '';
     byId('xAvatarPreview').src = avatar(account);
     editName.value = account.name;
@@ -465,6 +521,7 @@
     save.disabled = true;
     message.textContent = '';
     show('edit');
+    updateProfileSave();
   }
   async function squareImage(imageFile) {
     const url = URL.createObjectURL(imageFile);
@@ -513,11 +570,15 @@
     editName.disabled = file.disabled = save.disabled = true;
     message.textContent = '';
     try {
-      if (name !== account.name) Object.assign(account,await api('player','PUT',{name}));
-      if (image) {
-        playerAvatar = image;
-        try { localStorage.setItem(playerAvatarKey + ':' + account.handle,image); }
-        catch { showToast('头像只在本次打开期间有效'); }
+      const selected = account;
+      const imageFile = image ? await fetch(image).then(response => response.blob()) : null;
+      const updated = await api('player','PUT',{name,avatar:imageFile});
+      if (account !== selected) return;
+      Object.assign(selected,updated);
+      if (image && updated.avatarUrl) {
+        playerAvatar = null;
+        try { localStorage.removeItem(playerAvatarKey + ':' + selected.handle); }
+        catch { /* The cloud copy is already saved. */ }
       }
       if (page === 'edit') show('profile');
     } catch {
@@ -973,7 +1034,9 @@
             openPostId = post.id;
             show('post');
           }
-          byId('xCommentText')?.focus();
+          const clearTarget = byId('xReplyTargetClear');
+          if (!byId('xReplyTarget').hidden && !clearTarget.disabled) clearTarget.click();
+          replyField.focus();
         };
       } else {
         button.disabled = true;
@@ -989,72 +1052,192 @@
 
   function playerComments(post) {
     const section = node('section','','x-player-comments');
+    const endpoint = 'comments/' + encodeURIComponent(post.id);
+    const context = byId('xReplyTarget');
+    const contextName = byId('xReplyTargetName');
+    let selected = null;
+    let submission = null;
+    let sending = false;
+    const active = () => replyBar.onsubmit === submitReply;
+
+    function setTarget(target) {
+      selected = target;
+      context.hidden = !target;
+      contextName.textContent = target ? '回复 @' + target.author.handle : '';
+      replyField.setAttribute('aria-label',contextName.textContent || '发布你的回复');
+    }
+
+    function action(kind,label) {
+      const button = node('button');
+      button.type = 'button';
+      button.setAttribute('aria-label',label);
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+glyphs[kind]+'"/></svg>';
+      return button;
+    }
+
+    function replyCard(entry) {
+      const group = node('div','','x-player-reply');
+      const card = node('article','','x-post x-thread-reply');
+      const header = node('div','','x-post-author');
+      const author = sharedPlayer(entry.author);
+      const byline = node('div','','x-post-byline');
+      byline.append(node('strong',author.name),node('span','@'+author.handle,'x-post-muted'));
+      header.append(playerAvatarButton(author),byline);
+      const date = new Date(entry.createdAt);
+      const stamp = node('time',date.toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'}),'x-post-date');
+      stamp.dateTime = date.toISOString();
+
+      const actions = node('div','','x-post-actions x-player-reply-actions');
+      const reply = action('reply','回复 @'+author.handle);
+      reply.onclick = () => {
+        if (sending) return;
+        setTarget(target);
+        replyField.focus();
+      };
+      const like = action('like','点赞');
+      like.dataset.replyLike = '';
+      const count = node('span');
+      const updateLike = state => {
+        like.setAttribute('aria-pressed',String(state.liked));
+        like.setAttribute('aria-label',state.liked ? '取消点赞' : '点赞');
+        count.textContent = String(state.likes);
+      };
+      updateLike(entry);
+      like.append(count);
+      like.onclick = async () => {
+        like.disabled = true;
+        try {
+          updateLike(await api('comment-likes/' + entry.id,'PUT',{
+            value: like.getAttribute('aria-pressed') !== 'true'
+          }));
+        } catch {
+          if (active()) showToast('点赞状态更新失败，请重试。');
+        } finally {
+          like.disabled = false;
+        }
+      };
+      actions.append(reply,like);
+      card.append(header,node('p',entry.body,'x-post-text x-topic-copy'),stamp,actions);
+      const children = node('div');
+      const expand = node('button','','x-thread-more x-thread-expand');
+      expand.type = 'button';
+      expand.setAttribute('aria-expanded','false');
+      const branch = replyList(children,entry.id);
+      let countReplies = Number(entry.replies);
+      const updateExpand = () => {
+        expand.hidden = !countReplies;
+        expand.textContent = children.hidden ? '查看 ' + countReplies + ' 条回复' : '收起回复';
+        expand.setAttribute('aria-expanded',String(!children.hidden));
+        card.classList.toggle('x-thread-connected',!children.hidden && branch.hasReplies());
+      };
+      const target = {
+        id: entry.id,
+        author,
+        async reveal(added = false) {
+          if (added) countReplies++;
+          children.hidden = false;
+          updateExpand();
+          if (added || !branch.hasReplies()) await branch.load(null);
+          updateExpand();
+        }
+      };
+      children.hidden = true;
+      expand.onclick = () => {
+        if (children.hidden) target.reveal();
+        else {
+          children.hidden = true;
+          updateExpand();
+        }
+      };
+      updateExpand();
+      group.append(card,expand,children);
+      return group;
+    }
+
+    function replyList(container, parent = null) {
+      const entries = node('div');
+      const more = node('button','加载更多回复','x-thread-more');
+      more.type = 'button';
+      more.hidden = true;
+      container.append(entries,more);
+      let request = 0;
+      let next = null;
+      function load(before) {
+        const run = ++request;
+        more.disabled = true;
+        const params = new URLSearchParams();
+        if (parent !== null) params.set('parent',parent);
+        if (before !== null) params.set('before',before);
+        return api(endpoint + '?' + params).then(result => {
+          if (run !== request || !active()) return;
+          const cards = result.entries.map(replyCard);
+          if (before === null) entries.replaceChildren(...cards);
+          else entries.append(...cards);
+          next = result.next;
+          more.textContent = '加载更多回复';
+          more.hidden = next === null;
+        }).catch(() => {
+          if (run !== request || !active()) return;
+          next = before;
+          more.textContent = '回复加载失败，重试';
+          more.hidden = false;
+        }).finally(() => {
+          if (run === request) more.disabled = false;
+        });
+      }
+      more.onclick = () => load(next);
+      return { load, hasReplies: () => Boolean(entries.childElementCount) };
+    }
+
+    const roots = replyList(section);
+    async function submitReply(event) {
+      event.preventDefault();
+      const body = replyField.value.trim();
+      if (!body || sending) return;
+      const target = selected;
+      const parent = target?.id ?? null;
+      if (submission?.body !== body || submission.parent !== parent) {
+        submission = { body,parent,id:crypto.randomUUID() };
+      }
+      sending = true;
+      replySubmit.disabled = replyField.disabled = true;
+      byId('xReplyTargetClear').disabled = true;
+      replyStatus.textContent = '正在发布…';
+      try {
+        await api(endpoint,'POST',{body,parent,submission:submission.id});
+        if (!active()) return;
+        replyField.value = '';
+        replyField.oninput();
+        submission = null;
+        setTarget(null);
+        replyStatus.textContent = '';
+        if (target) await target.reveal(true);
+        else await roots.load(null);
+      } catch {
+        if (active()) replyStatus.textContent = '发布失败，请重试。';
+      } finally {
+        sending = false;
+        if (active()) {
+          replySubmit.disabled = replyField.disabled = false;
+          byId('xReplyTargetClear').disabled = false;
+        }
+      }
+    }
+
     replyBar.hidden = false;
     replyBar.reset();
     replyField.disabled = replySubmit.disabled = false;
     replyField.oninput();
     replyStatus.textContent = '';
-    const list = node('div');
-    const more = node('button','加载更多','x-outline');
-    more.type = 'button';
-    more.hidden = true;
-    section.append(list,more);
-    let next = null;
-    let loading = false;
-    let previousBody = '';
-    let submission;
-    const endpoint = 'comments/' + encodeURIComponent(post.id);
-    async function load(before = null) {
-      loading = true;
-      more.disabled = true;
-      try {
-        const result = await api(endpoint + (before === null ? '' : '?before=' + before));
-        if (before === null) list.replaceChildren();
-        for (const entry of result.entries) {
-          const card = node('article','','x-post');
-          const byline = node('div','','x-post-byline');
-          byline.append(node('strong',entry.name),node('span','@'+String(entry.playerId).padStart(2,'0'),'x-post-muted'));
-          card.append(byline,node('p',entry.body,'x-post-text x-topic-copy'),
-            node('p',new Date(entry.createdAt).toLocaleString('zh-CN'),'x-post-date'));
-          list.append(card);
-        }
-        next = result.next;
-        more.textContent = '加载更多';
-        more.hidden = next === null;
-      } catch {
-        next = before;
-        more.textContent = '加载失败，重试';
-        more.hidden = false;
-      } finally {
-        loading = false;
-        more.disabled = false;
-      }
-    }
-    more.onclick = () => { if (!loading) load(next); };
-    const submitReply = async event => {
-      event.preventDefault();
-      const body = replyField.value.trim();
-      if (!body || replySubmit.disabled || loading) return;
-      if (body !== previousBody || !submission) submission = crypto.randomUUID();
-      previousBody = body;
-      replySubmit.disabled = replyField.disabled = true;
-      replyStatus.textContent = '正在发布…';
-      try {
-        await api(endpoint,'POST',{body,submission});
-        if (replyBar.onsubmit !== submitReply) return;
-        replyField.value = '';
-        replyField.oninput();
-        submission = undefined;
-        replyStatus.textContent = '';
-        await load();
-      } catch {
-        if (replyBar.onsubmit === submitReply) replyStatus.textContent = '发布失败，请重试。';
-      } finally {
-        if (replyBar.onsubmit === submitReply) replySubmit.disabled = replyField.disabled = false;
-      }
+    setTarget(null);
+    const clear = byId('xReplyTargetClear');
+    clear.disabled = false;
+    clear.onclick = () => {
+      setTarget(null);
+      replyField.focus();
     };
     replyBar.onsubmit = submitReply;
-    load();
+    roots.load(null);
     return section;
   }
 
