@@ -483,11 +483,17 @@ img.music-playlist-art{display:block;width:100%;object-fit:cover;height:auto}
   </header>
   <div id="xBody" class="x-body">
     <div data-x-page="login">
-      <form hidden style="display:none" id="xPlayerLogin" class="x-login">
+      <form id="xPlayerLogin" class="x-login" style="display:none">
         <h2>登录 X</h2>
-        <label for="xPlayerName">你的名字</label>
-        <input id="xPlayerName" type="text" maxlength="40" autocomplete="nickname" required>
-        <button type="submit" class="x-save">进入 X</button></form>
+        <label for="xPlayerEmail">邮箱</label>
+        <input id="xPlayerEmail" type="email" autocomplete="email" required>
+        <label for="xPlayerPassword">密码</label>
+        <input id="xPlayerPassword" type="password" autocomplete="current-password" required>
+        <label for="xPlayerName">昵称（注册时填写）</label>
+        <input id="xPlayerName" type="text" maxlength="40" autocomplete="nickname">
+        <button type="submit" class="x-save" value="login">登录</button>
+        <button type="submit" class="x-outline" value="signup">注册</button>
+      </form>
       <p id="xLoginStatus" class="x-hint" role="status"></p>
     </div>
     <div data-x-page="home" hidden>
@@ -525,6 +531,7 @@ img.music-playlist-art{display:block;width:100%;object-fit:cover;height:auto}
       <button type="button" id="xFollowingSettings" class="x-account">正在关注 <span class="x-chevron">›</span></button>
       <button type="button" id="xBookmarks" class="x-account">书签 <span class="x-chevron">›</span></button>
       <button type="button" id="xOwnProfile" class="x-account">个人资料 <span class="x-chevron">›</span></button>
+      <button type="button" id="xSignOut" class="x-account">退出登录</button>
     </div>
     <div data-x-page="edit" hidden>
       <div class="x-edit-name"><label for="xEditName">显示名称</label><input id="xEditName" type="text" maxlength="40" autocomplete="nickname"><span id="xEditHandle" class="x-handle"></span></div>
@@ -1554,7 +1561,10 @@ selectedRole=loadSession();refreshAccountCards();bindUnlockControls();bindAccoun
   syncPlayback();
 }
 </script>
-<script src="x/app.js?v=hidden-everland-2"></script>
+<script src="x/supabase-sdk.js"></script>
+  <script src="x/supabase-config.js"></script>
+  <script src="x/supabase-backend.js"></script>
+  <script src="x/app.js?v=supabase-1"></script>
 <script src="photos/app.js?v=dog-album-3"></script>
 <script src="./notes.js"></script>
 </body>

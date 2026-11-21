@@ -80,41 +80,59 @@
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
   let account = null;
   let connecting = false;
-  async function api(path, method = 'GET', data) {
-    const form = data instanceof FormData;
-    const response = await fetch('/api/x/' + path, {
-      method, cache:'no-store',
-      headers:data && !form ? {'Content-Type':'application/json'} : {},
-      ...(data ? {body:form ? data : JSON.stringify(data)} : {})
-    });
-    if (!response.ok) {
-      const error = new Error(String(response.status));
-      if (path.startsWith('topics/')) error.detail = (await response.json().catch(() => ({}))).error;
-      throw error;
-    }
-    return response.json();
+  const backend = window.lidBackend;
+  const api = (path, method = 'GET', data) => backend.api(path, method, data);
+  const loginForm = byId('xPlayerLogin');
+  const loginStatus = byId('xLoginStatus');
+
+  async function resumePlayer(name) {
+    const player = await (name ? api('player', 'POST', { name }) : api('player'));
+    account = { id: 'player', ...player };
+    playerAvatar = read(playerAvatarKey + ':' + account.handle);
+    if (root.classList.contains('active')) show('home');
+    refreshReactions();
+    loginStatus.textContent = '';
   }
-  async function signIn(name) {
-    if (connecting) return;
+
+  function handleLoginError(error) {
+    const messages = {
+      invalid_credentials: '邮箱或密码不正确。',
+      email_not_confirmed: '请先打开邮箱中的验证邮件。',
+      user_already_exists: '该邮箱已注册，请直接登录。',
+      over_email_send_rate_limit: '验证邮件发送过于频繁，请稍后再试。'
+    };
+    loginStatus.textContent = messages[error.code] ||
+      (error.message === '404' ? '请填写昵称后再次登录。' : '暂时无法连接，请稍后再试。');
+  }
+
+  async function signIn(event) {
+    event.preventDefault();
+    if (!backend.configured || connecting) return;
+    const mode = event.submitter?.value || 'login';
+    const name = byId('xPlayerName').value.trim();
+    const password = byId('xPlayerPassword').value;
+    if (mode === 'signup' && (!name || password.length < 8)) {
+      loginStatus.textContent = '注册需要填写昵称，密码至少 8 位。';
+      return;
+    }
     connecting = true;
-    const status = byId('xLoginStatus');
-    const submit = byId('xPlayerLogin').querySelector('button');
-    submit.disabled = true;
-    status.textContent = '正在连接…';
+    const buttons = Array.from(loginForm.querySelectorAll('button'));
+    buttons.forEach(button => { button.disabled = true; });
+    loginStatus.textContent = '正在连接…';
     try {
-      const player = await (name ? api('player','POST',{name}) : api('player'));
-      account = {id:'player',...player};
-      playerAvatar = read(playerAvatarKey + ':' + account.handle);
-      if (root.classList.contains('active')) show('home');
-      refreshReactions();
-      status.textContent = '';
+      const ready = await backend.authenticate(mode, byId('xPlayerEmail').value.trim(), password, name);
+      byId('xPlayerPassword').value = '';
+      if (ready) await resumePlayer(name);
+      else loginStatus.textContent = '请查收邮箱验证邮件。验证后可返回网站登录。';
     } catch (error) {
-      status.textContent = error.message === '404' && !name ? '' : '连接失败，请重试。';
+      handleLoginError(error);
     } finally {
       connecting = false;
-      submit.disabled = false;
+      buttons.forEach(button => { button.disabled = false; });
     }
   }
+  loginForm.onsubmit = signIn;
+
   let profile = null;
   let profileTab = 'posts';
   let page = '';
@@ -154,15 +172,6 @@
     button.onclick = () => activate(account);
     return button;
   }
-  byId('xPlayerLogin').onsubmit = event => {
-    event.preventDefault();
-    const input = byId('xPlayerName');
-    const name = input.value.trim();
-    input.setCustomValidity(name ? '' : '请输入名字');
-    if (!input.reportValidity()) return;
-    signIn(name);
-  };
-  byId('xPlayerName').oninput = event => event.target.setCustomValidity('');
   function openProfile(selected) {
     profileBack = ['search','topic','post','settings','bookmarks','following'].includes(page) ? page : 'home';
     profile = selected;
@@ -867,12 +876,14 @@
     const [hour, minute] = post.time.split(':').map(Number);
     return Date.UTC(year,month-1,day,hour,minute);
   }
+  const storyAssets = {"x/posts/1-1.jpg":"x/posts/1-1.webp","x/posts/1-2.jpg":"x/posts/1-2.webp","x/posts/2-1.jpg":"x/posts/2-1.webp","x/posts/2-2.jpg":"x/posts/2-2.webp","x/posts/2-3.jpg":"x/posts/2-3.webp","x/posts/2-4.jpg":"x/posts/2-4.webp","x/posts/2-5.jpg":"x/posts/2-5.webp","x/posts/ht-bignews-photo.jpg":"x/posts/ht-bignews-photo.webp","x/posts/j5-1.jpg":"x/posts/j5-1.webp","x/posts/j5-2-1.jpg":"x/posts/j5-2-1.webp","x/posts/j5-2-2.jpg":"x/posts/j5-2-2.webp","x/posts/j5-2-3.jpg":"x/posts/j5-2-3.webp","x/posts/j5-3.jpg":"x/posts/j5-3.webp","x/posts/jaehee-introduction.jpg":"x/posts/jaehee-introduction.webp","x/posts/r6-3.jpg":"x/posts/r6-3.webp","x/posts/r6-4.jpg":"x/posts/r6-4.webp","x/posts/r7-bestie.jpg":"x/posts/r7-bestie.webp","x/posts/r7-cat.jpg":"x/posts/r7-cat.webp","x/posts/r7-flowers.jpg":"x/posts/r7-flowers.webp","x/posts/r8-undercover-1.jpg":"x/posts/r8-undercover-1.webp","x/posts/r8-undercover-5.jpg":"x/posts/r8-undercover-5.webp","x/posts/r8-undercover-7.jpg":"x/posts/r8-undercover-7.webp","x/posts/t3-1.jpg":"x/posts/t3-1.webp","x/posts/t3-2.jpg":"x/posts/t3-2.webp","x/posts/t3-3.jpg":"x/posts/t3-3.webp","x/posts/t3-4.jpg":"x/posts/t3-4.webp","x/posts/t3-5.jpg":"x/posts/t3-5.webp","x/posts/t3-6.jpg":"x/posts/t3-6.webp","x/posts/t4-1.jpg":"x/posts/t4-1.webp","x/posts/t4-2.jpg":"x/posts/t4-2.webp","x/posts/t4-4.jpg":"x/posts/t4-4.webp","x/posts/t4-5.jpg":"x/posts/t4-5.webp","x/posts/tg-1.jpg":"x/posts/tg-1.webp","x/posts/tg-2.jpg":"x/posts/tg-2.webp","x/posts/tg-3-1.jpg":"x/posts/tg-3-1.webp","x/posts/tg-3-2.jpg":"x/posts/tg-3-2.webp","x/posts/tg-4.jpg":"x/posts/tg-4.webp","x/posts/tg2-1-1.jpg":"x/posts/tg2-1-1.webp","x/posts/tg2-1-2.jpg":"x/posts/tg2-1-2.webp","x/posts/tg2-2.jpg":"x/posts/tg2-2.webp","x/posts/tg2-3.jpg":"x/posts/tg2-3.webp","x/posts/tg2-5.jpg":"x/posts/tg2-5.webp","x/posts/tg2-6.jpg":"x/posts/tg2-6.webp","x/posts/tg2-7.jpg":"x/posts/tg2-7.webp"};
+  const storyAsset = path => storyAssets[path] || path;
   function postGallery(post) {
     const gallery = node('div','','x-post-gallery');
     gallery.dataset.count = String(post.images.length);
     post.images.forEach((asset, index) => {
-      const postImage = asset.startsWith('/') ? asset.slice(1) : 'x/posts/' + asset + '.jpg';
-      const src = ({"x/posts/1-1.jpg":"x/posts/1-1.webp","x/posts/1-2.jpg":"x/posts/1-2.webp","x/posts/2-1.jpg":"x/posts/2-1.webp","x/posts/2-2.jpg":"x/posts/2-2.webp","x/posts/2-3.jpg":"x/posts/2-3.webp","x/posts/2-4.jpg":"x/posts/2-4.webp","x/posts/2-5.jpg":"x/posts/2-5.webp","x/posts/ht-bignews-photo.jpg":"x/posts/ht-bignews-photo.webp","x/posts/j5-1.jpg":"x/posts/j5-1.webp","x/posts/j5-2-1.jpg":"x/posts/j5-2-1.webp","x/posts/j5-2-2.jpg":"x/posts/j5-2-2.webp","x/posts/j5-2-3.jpg":"x/posts/j5-2-3.webp","x/posts/j5-3.jpg":"x/posts/j5-3.webp","x/posts/jaehee-introduction.jpg":"x/posts/jaehee-introduction.webp","x/posts/r6-3.jpg":"x/posts/r6-3.webp","x/posts/r6-4.jpg":"x/posts/r6-4.webp","x/posts/r7-bestie.jpg":"x/posts/r7-bestie.webp","x/posts/r7-cat.jpg":"x/posts/r7-cat.webp","x/posts/r7-flowers.jpg":"x/posts/r7-flowers.webp","x/posts/r8-undercover-1.jpg":"x/posts/r8-undercover-1.webp","x/posts/r8-undercover-5.jpg":"x/posts/r8-undercover-5.webp","x/posts/r8-undercover-7.jpg":"x/posts/r8-undercover-7.webp","x/posts/t3-1.jpg":"x/posts/t3-1.webp","x/posts/t3-2.jpg":"x/posts/t3-2.webp","x/posts/t3-3.jpg":"x/posts/t3-3.webp","x/posts/t3-4.jpg":"x/posts/t3-4.webp","x/posts/t3-5.jpg":"x/posts/t3-5.webp","x/posts/t3-6.jpg":"x/posts/t3-6.webp","x/posts/t4-1.jpg":"x/posts/t4-1.webp","x/posts/t4-2.jpg":"x/posts/t4-2.webp","x/posts/t4-4.jpg":"x/posts/t4-4.webp","x/posts/t4-5.jpg":"x/posts/t4-5.webp","x/posts/tg-1.jpg":"x/posts/tg-1.webp","x/posts/tg-2.jpg":"x/posts/tg-2.webp","x/posts/tg-3-1.jpg":"x/posts/tg-3-1.webp","x/posts/tg-3-2.jpg":"x/posts/tg-3-2.webp","x/posts/tg-4.jpg":"x/posts/tg-4.webp","x/posts/tg2-1-1.jpg":"x/posts/tg2-1-1.webp","x/posts/tg2-1-2.jpg":"x/posts/tg2-1-2.webp","x/posts/tg2-2.jpg":"x/posts/tg2-2.webp","x/posts/tg2-3.jpg":"x/posts/tg2-3.webp","x/posts/tg2-5.jpg":"x/posts/tg2-5.webp","x/posts/tg2-6.jpg":"x/posts/tg2-6.webp","x/posts/tg2-7.jpg":"x/posts/tg2-7.webp"})[postImage] || postImage;
+      const src = /^https?:\/\//i.test(asset) ? asset :
+        storyAsset(asset.startsWith('/') ? asset.slice(1) : 'x/posts/' + asset + '.jpg');
       const button = node('button');
       button.type = 'button';
       button.setAttribute('aria-label','查看配图 '+(index+1));
@@ -930,7 +941,7 @@
       video.playsInline = true;
       video.preload = 'metadata';
       video.src = 'x/posts/' + post.video + '.mp4';
-      if (post.poster) video.poster = 'x/posts/' + post.poster + '.jpg';
+      if (post.poster) video.poster = storyAsset('x/posts/' + post.poster + '.jpg');
       video.setAttribute('aria-label','播放泰钢集团推文视频');
       article.append(video);
     }
@@ -1067,7 +1078,41 @@
   byId('openX').onclick = () => {
     showView('xView');
     show(account ? 'home' : 'login');
-    byId('xLoginStatus').textContent = '网页版的多人互动将在接入 Supabase 后开放。';
+    if (account) {
+      refreshReactions();
+      return;
+    }
+    if (!backend.configured) {
+      loginStatus.textContent = '网页版的多人互动将在接入 Supabase 后开放。';
+      return;
+    }
+    loginForm.style.display = '';
+    loginStatus.textContent = '';
+    if (!connecting) {
+      connecting = true;
+      resumePlayer().catch(error => {
+        if (error.message !== '401') handleLoginError(error);
+      }).finally(() => { connecting = false; });
+    }
+  };
+  byId('xSignOut').onclick = async () => {
+    const button = byId('xSignOut');
+    button.disabled = true;
+    try {
+      await backend.signOut();
+      account = null;
+      playerAvatar = null;
+      revision++;
+      updateReactions({ counts: {}, liked: [], saved: [] });
+      loginForm.reset();
+      loginStatus.textContent = '已退出登录。';
+      loginForm.style.display = '';
+      show('login');
+    } catch {
+      showToast('退出登录失败，请重试。');
+    } finally {
+      button.disabled = false;
+    }
   };
   back.onclick = goBack;
   userButton.onclick = () => show('settings');
