@@ -236,20 +236,13 @@
     return button;
   }
 
-  function sharedTopicCard(entry) {
-    const article = node('article','','x-post');
-    const header = node('div','','x-post-author');
-    const author = node('div','','x-post-byline');
-    author.append(node('strong',entry.author.name),node('span','@'+entry.author.handle,'x-post-muted'));
-    header.append(playerAvatarButton(sharedPlayer(entry.author)),author);
-    article.append(header);
-    if (entry.text) article.append(node('p',entry.text,'x-post-text x-topic-copy'));
-    if (entry.images.length) article.append(postGallery({images:entry.images}));
-    const date = new Date(entry.createdAt);
-    const stamp = node('time',date.toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'}),'x-post-date');
-    stamp.dateTime = date.toISOString();
-    article.append(stamp);
-    return article;
+  function sharedTopicCard(entry, detailed = false) {
+    return postCard({
+      ...entry,
+      id: 'topic:' + entry.id,
+      topicId: entry.id,
+      topic: trends.find(topic => topic.id === entry.topic)?.name
+    },detailed);
   }
 
   async function loadTopic(before = null) {
@@ -267,7 +260,7 @@
       if (!current()) return;
       topicFeedStatus.textContent = '';
       if (before === null && !result.entries.length) topicList.append(node('p','暂无贴文','x-empty'));
-      topicList.append(...result.entries.map(sharedTopicCard));
+      topicList.append(...result.entries.map(entry => sharedTopicCard(entry)));
       cursor = result.next;
       topicMore.textContent = '加载更多';
       topicMore.hidden = cursor === null;
@@ -407,7 +400,7 @@
         if (cursor !== null) params.set('before',cursor);
         const result = await api('player-posts/' + encodeURIComponent(selected.authorId) + '?' + params);
         if (!current()) return;
-        entries.append(...result.entries.map(sharedTopicCard));
+        entries.append(...result.entries.map(entry => sharedTopicCard(entry)));
         cursor = result.next;
         status.hidden = Boolean(entries.childElementCount);
         status.textContent = status.hidden ? '' : '暂无贴文';
@@ -928,6 +921,83 @@
     } catch { showToast('操作未保存，请重试'); }
     finally { mutation = false; }
   }
+  const topicMutations = new Set();
+  let topicRevision = 0;
+  let topicSyncing = false;
+
+  function paintTopicAction(button,state) {
+    const { topicAction } = button.dataset;
+    if (topicAction === 'reply') {
+      button.querySelector('span').textContent = state.replies || '';
+      return;
+    }
+    const pressed = topicAction === 'like' ? state.liked : state.saved;
+    button.setAttribute('aria-pressed',String(pressed));
+    button.setAttribute('aria-label',topicAction === 'like'
+      ? (pressed ? '取消点赞' : '点赞') : (pressed ? '取消收藏' : '收藏'));
+    if (topicAction === 'like') button.querySelector('span').textContent = state.likes;
+  }
+
+  function updateTopicActions(states) {
+    const byId = new Map(states.map(state => [String(state.post_id),state]));
+    root.querySelectorAll('[data-topic-action]').forEach(button => {
+      const state = byId.get(button.dataset.topicPost);
+      if (state) paintTopicAction(button,state);
+    });
+  }
+
+  async function refreshTopicActions() {
+    if (!account || topicSyncing || topicMutations.size) return;
+    const visibleView = views.find(view => view.dataset.xPage === page);
+    if (!visibleView) return;
+    const ids = [...new Set(Array.from(visibleView.querySelectorAll('[data-topic-action=like]'),
+      button => button.dataset.topicPost))];
+    if (!ids.length) return;
+    topicSyncing = true;
+    const run = topicRevision;
+    const player = account;
+    try {
+      for (let i = 0; i < ids.length; i += 30) {
+        const states = await api('topic-states','POST',{ids:ids.slice(i,i+30)});
+        if (run !== topicRevision || player !== account) break;
+        updateTopicActions(states);
+      }
+    } catch (error) {
+      console.warn('X topic state:', error.code || error.name);
+    } finally {
+      topicSyncing = false;
+    }
+  }
+
+  async function reactToTopic(button) {
+    const { topicPost,topicAction } = button.dataset;
+    if (topicMutations.has(topicPost)) return;
+    topicMutations.add(topicPost);
+    topicRevision++;
+    button.disabled = true;
+    const player = account;
+    try {
+      const state = await api('topic-reactions/' + topicPost,'PUT',{
+        kind:topicAction, value:button.getAttribute('aria-pressed') !== 'true'
+      });
+      if (player !== account) return;
+      updateTopicActions([state]);
+      if (topicAction === 'bookmark' && page === 'bookmarks') renderBookmarks();
+    } catch {
+      if (player === account) showToast('操作未保存，请重试');
+    } finally {
+      topicMutations.delete(topicPost);
+      button.disabled = false;
+    }
+  }
+
+  function openPost(id) {
+    if (page !== 'post') postHistory.length = 0;
+    postHistory.push({page,id:openPostId});
+    openPostId = id;
+    show('post');
+  }
+
   function node(tag, text, className) {
     const element = document.createElement(tag);
     if (text) element.textContent = text;
@@ -966,7 +1036,8 @@
     return gallery;
   }
   function postCard(post, detailed = false, connected = false) {
-    const author = accounts.find(a => a.id === post.author);
+    const playerPost = Boolean(post.topicId);
+    const author = playerPost ? sharedPlayer(post.author) : accounts.find(a => a.id === post.author);
     const parent = Boolean(post.parent);
     const article = node('article','',detailed ? 'x-post x-post-detail' : 'x-post');
     if (parent && !detailed) article.classList.add('x-thread-reply');
@@ -990,12 +1061,12 @@
     header.append(avatarButton,byline,menu);
     article.append(header);
     if (post.text) {
-    const content = node(detailed ? 'p' : 'button',post.text,'x-post-text');
-    if (!detailed) content.onclick = () => {
-      if (page !== 'post') postHistory.length = 0;
-      postHistory.push({page,id:openPostId}); openPostId = post.id; show('post');
-    };
-    article.append(content);
+      const content = node(detailed ? 'p' : 'button',post.text,playerPost ? 'x-post-text x-topic-copy' : 'x-post-text');
+      if (!detailed) {
+        content.type = 'button';
+        content.onclick = () => openPost(post.id);
+      }
+      article.append(content);
     }
     if(post.topic){const tag=node('button','#'+post.topic,'x-topic-tag');tag.type='button';tag.onclick=()=>openTopic(trends.find(topic => topic.name === post.topic) || hiddenTaegang);article.append(tag);}
     if (post.images?.length) article.append(postGallery(post));
@@ -1010,29 +1081,40 @@
       article.append(video);
     }
     if (post.credit) article.append(node('p',post.credit,'x-post-credit'));
-    if (post.date) article.append(node('p',post.time+' · '+post.date,'x-post-date'));
+    if (playerPost) {
+      const date = new Date(post.createdAt);
+      const stamp = node('time',date.toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'}),'x-post-date');
+      stamp.dateTime = date.toISOString();
+      article.append(stamp);
+    } else if (post.date) article.append(node('p',post.time+' · '+post.date,'x-post-date'));
     const actions = node('div','','x-post-actions');
     for (const [kind,label] of [['reply','回复'],['repost','转发'],['like','点赞'],['views','查看次数'],['bookmark','收藏'],['share','分享']]) {
       const button = node('button');
       button.type = 'button';
       button.setAttribute('aria-label',label);
       button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+glyphs[kind]+'"/></svg>';
-      if (kind === 'like' || kind === 'bookmark') {
+      if (playerPost && ['reply','like','bookmark'].includes(kind)) {
+        button.dataset.topicPost = post.topicId;
+        button.dataset.topicAction = kind;
+        if (kind !== 'bookmark') button.append(node('span'));
+        paintTopicAction(button,post.state);
+      }
+      if (playerPost && (kind === 'like' || kind === 'bookmark')) {
+        button.onclick = () => reactToTopic(button);
+      } else if (kind === 'like' || kind === 'bookmark') {
         button.dataset.xReaction = kind;
         button.dataset.postId = post.id;
         button.setAttribute('aria-pressed',String((kind === 'like' ? reactions.liked : reactions.saved).includes(post.id)));
         if (kind === 'like') button.append(node('span',String(reactions.counts[post.id] || 0)));
         button.onclick = () => react(post.id,kind);
       } else if (kind === 'reply') {
-        const count = posts.filter(p => p.parent === post.id).length;
+        const count = playerPost ? 0 : posts.filter(p => p.parent === post.id).length;
         if (count) button.append(node('span',String(count)));
         button.disabled = Boolean(post.locked || post.parent);
         button.onclick = () => {
           if (!detailed) {
-            if (page !== 'post') postHistory.length = 0;
-            postHistory.push({page,id:openPostId});
-            openPostId = post.id;
-            show('post');
+            openPost(post.id);
+            if (playerPost) return;
           }
           const clearTarget = byId('xReplyTargetClear');
           if (!byId('xReplyTarget').hidden && !clearTarget.disabled) clearTarget.click();
@@ -1052,7 +1134,7 @@
 
   function playerComments(post) {
     const section = node('section','','x-player-comments');
-    const endpoint = 'comments/' + encodeURIComponent(post.id);
+    const endpoint = post.topicId ? 'topic-comments/' + post.topicId : 'comments/' + encodeURIComponent(post.id);
     const context = byId('xReplyTarget');
     const contextName = byId('xReplyTargetName');
     let selected = null;
@@ -1102,7 +1184,8 @@
         like.setAttribute('aria-label',state.liked ? '取消点赞' : '点赞');
         count.textContent = String(state.likes);
       };
-      updateLike(entry);
+      if (entry.comment_id === undefined) like.disabled = true;
+      else updateLike(entry);
       like.append(count);
       like.onclick = async () => {
         like.disabled = true;
@@ -1123,7 +1206,7 @@
       expand.type = 'button';
       expand.setAttribute('aria-expanded','false');
       const branch = replyList(children,entry.id);
-      let countReplies = Number(entry.replies);
+      let countReplies = Number(entry.replies || 0);
       const updateExpand = () => {
         expand.hidden = !countReplies;
         expand.textContent = children.hidden ? '查看 ' + countReplies + ' 条回复' : '收起回复';
@@ -1176,8 +1259,9 @@
           next = result.next;
           more.textContent = '加载更多回复';
           more.hidden = next === null;
-        }).catch(() => {
+        }).catch(error => {
           if (run !== request || !active()) return;
+          console.warn('X reply load:', error.code || error.name);
           next = before;
           more.textContent = '回复加载失败，重试';
           more.hidden = false;
@@ -1212,7 +1296,10 @@
         setTarget(null);
         replyStatus.textContent = '';
         if (target) await target.reveal(true);
-        else await roots.load(null);
+        else {
+          await roots.load(null);
+          if (post.topicId) refreshTopicActions();
+        }
       } catch {
         if (active()) replyStatus.textContent = '发布失败，请重试。';
       } finally {
@@ -1241,7 +1328,30 @@
     return section;
   }
 
+  async function renderSharedThread(topicId) {
+    const container = byId('xPostThread');
+    const loading = node('p','正在加载贴文…','x-empty');
+    container.replaceChildren(loading);
+    const current = () => page === 'post' && openPostId === 'topic:' + topicId && container.contains(loading);
+    try {
+      const entry = await api('topic-post/' + topicId);
+      if (!current()) return;
+      container.replaceChildren(sharedTopicCard(entry,true),playerComments({topicId}));
+    } catch {
+      if (!current()) return;
+      loading.textContent = '暂时无法加载贴文。';
+      const retry = node('button','重试','x-thread-more');
+      retry.type = 'button';
+      retry.onclick = () => renderSharedThread(topicId);
+      container.append(retry);
+    }
+  }
+
   function renderThread() {
+    if (openPostId.startsWith('topic:')) {
+      renderSharedThread(openPostId.slice(6));
+      return;
+    }
     const post = posts.find(p => p.id === openPostId);
     const descendants = parentId => posts.filter(reply => reply.parent === parentId).flatMap(reply => {
       const children = descendants(reply.id);
@@ -1251,15 +1361,46 @@
   }
   function renderBookmarks() {
     const key = byId('xBookmarkSearch').value.trim().toLowerCase().replace(/^@/,'');
-    renderPosts(byId('xBookmarkPosts'), posts.filter(post => {
-      const author = accounts.find(a => a.id === post.author);
-      return reactions.saved.includes(post.id) && (post.text+' '+author.name+' '+author.handle).toLowerCase().includes(key);
-    }));
+    const list = byId('xBookmarkPosts');
+    const matches = (text,author) => [text,author.name,author.handle].join(' ').toLowerCase().includes(key);
+    const stories = posts.filter(post => reactions.saved.includes(post.id) &&
+      matches(post.text,accounts.find(a => a.id === post.author)));
+    const playerPosts = node('div');
+    const status = node('p','','x-empty');
+    const more = node('button','加载更多','x-thread-more');
+    more.type = 'button';
+    more.hidden = true;
+    list.replaceChildren(...stories.map(post => postCard(post)),playerPosts,status,more);
+    let cursor = null;
+    async function load() {
+      const current = () => page === 'bookmarks' && list.contains(playerPosts);
+      more.hidden = true;
+      status.textContent = '正在加载收藏…';
+      try {
+        const result = await api('topic-bookmarks' + (cursor === null ? '' : '?before=' + cursor));
+        if (!current()) return;
+        playerPosts.append(...result.entries.filter(entry => matches(entry.text,entry.author)).map(entry => sharedTopicCard(entry)));
+        cursor = result.next;
+        status.textContent = stories.length || playerPosts.childElementCount || cursor !== null ? '' : '暂无贴文';
+        more.textContent = '加载更多';
+        more.hidden = cursor === null;
+      } catch {
+        if (!current()) return;
+        status.textContent = '暂时无法加载玩家贴文的收藏。';
+        more.textContent = '重试';
+        more.hidden = false;
+      }
+    }
+    more.onclick = load;
+    load();
   }
   byId('xBookmarks').onclick = () => show('bookmarks');
   byId('xBookmarkSearch').oninput = renderBookmarks;
   setInterval(() => {
-    if (root.classList.contains('active') && !document.hidden) refreshReactions();
+    if (root.classList.contains('active') && !document.hidden) {
+      refreshReactions();
+      if (['topic','profile','post','bookmarks'].includes(page)) refreshTopicActions();
+    }
   }, 2500);
   byId('openX').onclick = () => {
     showView('xView');

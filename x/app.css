@@ -156,3 +156,8 @@
 .x-player-reply:has(> .x-thread-expand[aria-expanded=true]) > .x-thread-expand::before{content:"";position:absolute;left:-16px;top:0;bottom:0;width:2px;background:#eff3f4}
 #xReplyTarget{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;color:#536471;font-size:13px}
 #xReplyTarget button{padding:5px 0}
+
+.x-post-date:empty,.x-post-actions span:empty,#xBookmarkPosts .x-empty:empty{display:none}
+.x-post-date{display:block}
+.x-post-actions [data-topic-action=like][aria-pressed=true]{color:#f91880}
+.x-post-actions [data-topic-action=bookmark][aria-pressed=true]{color:#1d9bf0}
