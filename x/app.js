@@ -28,6 +28,11 @@
     {id:'npc-firstlove',name:'첫사랑',handle:'uabhbvffvb',npc:true,avatar:'x/npc-firstlove.jpg'},
     {id:'npc-yjji',name:'yjji💕💕',handle:'ygnkom',npc:true,avatar:'x/npc-yjji.jpg'}
   );
+  accounts.push(
+    {"id":"npc-hot-water","name":"多喝热水","handle":"drinkwarmwater","npc":true},
+    {"id":"npc-echo","name":"Echo","handle":"speakingtoomuch","npc":true},
+    {"id":"npc-yala","name":"亚拉是神","handle":"yala_is_god","npc":true}
+  );
   accounts.find(a=>a.id==='taegang').bio='接受关于泰钢集团的一切情报。\n※欢迎和泰钢集团有关的各种小道消息\n※欢迎尹伊俊常务的消息及目击之谈';
   accounts.push(...[{"id":"npc-ssssj","name":"SSSSj","handle":"ZCCZJY","npc":true,"avatar":"x/npc-ssssj.jpg"},{"id":"npc-angela","name":"angelamerkel","handle":"Angelamerkel137","npc":true,"avatar":"x/npc-angela.jpg"},{"id":"npc-yu","name":"☔yu","handle":"yushiga","npc":true,"avatar":"x/npc-yu.jpg"},{"id":"npc-super","name":"슈퍼 알라","handle":"superwoman","npc":true,"avatar":"x/npc-super.jpg"},{"id":"npc-nowork","name":"출근하지 마세요","handle":"uabgbsjjznb","npc":true},{"id":"npc-momo","name":"momo","handle":"lovethis6465","npc":true,"avatar":"x/npc-momo.jpg"}]);
   accounts.push({id:'npc-love-master',name:'恋爱大师',handle:'love_master',npc:true,avatar:'x/npc-love-master.jpg'});
@@ -583,6 +588,70 @@
   };
 
   const posts = [
+    {"id":"jeong-back-from-leave","author":"secretary","text":"我不在的几天发生什么了吗。？姜秘书是怎么在一周之内和常务变得那么熟的🥲","date":"2026/11/08","time":"13:07","images":["x/posts/jeong-back-from-leave.jpg"],"credit":"转自@西瓜椰椰"},
+    {"id":"jeong-back-from-leave-1","parent":"jeong-back-from-leave","author":"sihyeon","text":"所以你看到什么了，这俩人为什么这个表情看着你"},
+    {"id":"jeong-back-from-leave-2","parent":"jeong-back-from-leave-1","author":"secretary","text":"姜秘书竟然敢每一句都顶撞常务，常务让闭嘴以后还说出让常务报销出租车账单……我一直跪在地上震惊的看着他们，然后突然就被这样看了🥲"},
+    {"id":"jeong-back-from-leave-3","parent":"jeong-back-from-leave-2","author":"sihyeon","text":"姜秘书这么猛吗，大发"},
+    {"id":"jeong-back-from-leave-4","parent":"jeong-back-from-leave","author":"yoon","text":"我并没有和特战部队的很熟。"},
+    {"id":"jeong-back-from-leave-5","parent":"jeong-back-from-leave-4","author":"jaehee","text":"是的，我并没有和常务nim很熟"},
+    {"id":"jeong-back-from-leave-6","parent":"jeong-back-from-leave-4","author":"sihyeon","text":"别嘴硬了宝贝😝"},
+    {"id":"jeong-back-from-leave-7","parent":"jeong-back-from-leave-6","author":"yoon","text":"滚。"},
+    {"id":"jeong-back-from-leave-8","parent":"jeong-back-from-leave","author":"sia","text":"欧巴！好久没有看见这么有荷尔蒙的画面了🥰"},
+    {"id":"jeong-back-from-leave-9","parent":"jeong-back-from-leave-8","author":"yoon","text":"你在说什么鬼话"},
+    {"id":"sihyeon-last-to-know","author":"sihyeon","text":"？所以我是最后一个知道姜秘书是女人的人吗","date":"2026/11/16","time":"21:18","credit":"转自@西瓜椰椰"},
+    {"id":"sihyeon-last-to-know-1","parent":"sihyeon-last-to-know","author":"hyejeong","text":"这个不是一眼就能看出来吗"},
+    {"id":"sihyeon-last-to-know-2","parent":"sihyeon-last-to-know-1","author":"sihyeon","text":"？哪里？怎么？何时？"},
+    {"id":"sihyeon-last-to-know-3","parent":"sihyeon-last-to-know","author":"sia","text":"我知道的比欧巴还要早哦😉"},
+    {"id":"sihyeon-last-to-know-4","parent":"sihyeon-last-to-know-3","author":"sihyeon","text":"常务也不是第一个知道的啊……那我平衡多了😁"},
+    {"id":"sihyeon-last-to-know-5","parent":"sihyeon-last-to-know-4","author":"yoon","text":"？"},
+    {"id":"sihyeon-last-to-know-6","parent":"sihyeon-last-to-know","author":"yoon","text":"你是怎么知道的，我好像没告诉过你"},
+    {"id":"sihyeon-last-to-know-7","parent":"sihyeon-last-to-know-6","author":"sihyeon","text":"？姜秘书本人告诉我的OK？在去向你告白的路上！"},
+    {"id":"sihyeon-last-to-know-8","parent":"sihyeon-last-to-know-7","author":"yoon","text":"好吧，那我原谅你了😎"},
+    {"id":"sihyeon-last-to-know-9","parent":"sihyeon-last-to-know","author":"secretary","text":"等等……姜秘书是女人？？？！！！"},
+    {"id":"sihyeon-last-to-know-10","parent":"sihyeon-last-to-know-9","author":"sihyeon","text":"呀，这里竟然还有一个更晚的"},
+    {"id":"sihyeon-last-to-know-11","parent":"sihyeon-last-to-know-10","author":"secretary","text":"那常务终于可以摆脱同性传闻了！"},
+    {"id":"sihyeon-last-to-know-12","parent":"sihyeon-last-to-know-11","author":"yoon","text":"啧，都说了只要是姜秘书就行，同不同性有什么关系"},
+    {"id":"sihyeon-last-to-know-13","parent":"sihyeon-last-to-know-12","author":"sihyeon","text":"我家宝贝终于通人性了，竟然这么懂爱😍"},
+    {"id":"sihyeon-last-to-know-14","parent":"sihyeon-last-to-know-13","author":"yoon","text":"滚"},
+    {"id":"ht-58-degree-milk","author":"npc-hot-water","text":"新来的姜秘书也太惨了……一直能听到常务办公室发出的怒吼紧接着姜秘书气冲冲走出来的声音\n\n好不容易来个长得这么帅的可别把他气走啊😱","date":"2026/10/31","time":"22:26","topic":"隐秘的泰钢","images":["x/posts/ht-58-degree-milk-1.png","x/posts/ht-58-degree-milk-2.png","x/posts/ht-58-degree-milk-3.png","x/posts/ht-58-degree-milk-4.png"],"imageZoom":false,"credit":"转自@西瓜椰椰"},
+    {"id":"ht-58-degree-milk-1","parent":"ht-58-degree-milk","author":"npc-jpdxo","text":"大厅那个我在现场，常务走着走着突然让姜秘书离远一点，姜秘书后退几步以后常务突然喊着什么跑走了"},
+    {"id":"ht-58-degree-milk-2","parent":"ht-58-degree-milk-1","author":"npc-evan","text":"我也在现场，不过姜秘书不就是后退了几步吗，为什么常务突然很惊恐的碎步跑走了🤔"},
+    {"id":"ht-58-degree-milk-3","parent":"ht-58-degree-milk-2","author":"npc-heart","text":"不过说实在的，常务以前就是阴晴不定的😇可能现在症状更严重了吧"},
+    {"id":"ht-58-degree-milk-4","parent":"ht-58-degree-milk","author":"npc-kk","text":"谁知道P3P4又是为了什么"},
+    {"id":"ht-58-degree-milk-5","parent":"ht-58-degree-milk-4","author":"npc-jpdxo","text":"常务让姜秘书重新用58度的牛奶泡奶茶😇"},
+    {"id":"ht-58-degree-milk-6","parent":"ht-58-degree-milk-5","author":"npc-sam","text":"西八，好熟悉的话"},
+    {"id":"ht-58-degree-milk-7","parent":"ht-58-degree-milk-6","author":"npc-nowork","text":"我以前被借调过去帮忙，常务让我泡一杯清爽一点的奶茶，我就加了冰送过去，然后被超级男高音抖着手尖叫着骂出来了😇"},
+    {"id":"ht-58-degree-milk-8","parent":"ht-58-degree-milk-7","author":"npc-oo","text":"omg。"},
+    {"id":"ht-58-degree-milk-9","parent":"ht-58-degree-milk-7","author":"npc-nowork","text":"然后让我用58度的牛奶重泡😇"},
+    {"id":"ht-58-degree-milk-10","parent":"ht-58-degree-milk","author":"npc-yjji","text":"姜秘书今天一直在整栋楼里奔波呢，真心希望他可以撑久一点，好久没看见这么帅气又善良的帅哥了🤵"},
+    {"id":"ht-58-degree-milk-11","parent":"ht-58-degree-milk-10","author":"npc-rice","text":"附议🥲"},
+    {"id":"ht-just-a-brother","author":"npc-super","text":"提问：你们的弟弟也会有可以摸脸拉手的关系很好的哥哥吗\n\n我只是很好奇。","date":"2026/11/09","time":"02:38","topic":"隐秘的泰钢","images":["x/posts/ht-just-a-brother.png"],"imageZoom":false,"credit":"转自@西瓜椰椰"},
+    {"id":"ht-just-a-brother-1","parent":"ht-just-a-brother","author":"npc-evan","text":"这很正常吧，不过楼主是看到自己弟弟和别的哥哥关系更好吃醋了？"},
+    {"id":"ht-just-a-brother-2","parent":"ht-just-a-brother","author":"npc-heart","text":"不过看照片两个人关系确实很好呢"},
+    {"id":"ht-just-a-brother-3","parent":"ht-just-a-brother","author":"npc-jia","text":"弟弟很帅哦楼主，不过怎么看起来很眼熟？"},
+    {"id":"ht-just-a-brother-4","parent":"ht-just-a-brother","author":"npc-rice","text":"弟弟长大了当然要交朋友啊，而且看起来俩人很配呢"},
+    {"id":"ht-just-a-brother-5","parent":"ht-just-a-brother","author":"npc-echo","text":"宝贝，都告诉你了，这就是喜欢啊，别再让你的大脑欺骗你了😝"},
+    {"id":"ht-just-a-brother-6","parent":"ht-just-a-brother-5","author":"npc-kk","text":"哎？等等，楼主不是亲哥哥吗"},
+    {"id":"ht-just-a-brother-7","parent":"ht-just-a-brother-5","author":"npc-love-master","text":"原来是情弟弟啊😋"},
+    {"id":"ht-just-a-brother-8","parent":"ht-just-a-brother-1","author":"npc-super","text":"我只是把他当弟弟，想让他更谨慎的交朋友而已。"},
+    {"id":"ht-just-a-brother-9","parent":"ht-just-a-brother-2","author":"npc-super","text":"我认为朋友之间不应该随便拉手摸脸，这不是朋友间的分寸感。"},
+    {"id":"ht-just-a-brother-10","parent":"ht-just-a-brother-3","author":"npc-super","text":"谢谢，我的秘……我的弟弟确实长得很漂亮。"},
+    {"id":"ht-just-a-brother-11","parent":"ht-just-a-brother-4","author":"npc-super","text":"从哪里能看出来很配？事实上一点也不配"},
+    {"id":"ht-just-a-brother-12","parent":"ht-just-a-brother-5","author":"npc-super","text":"滚"},
+    {"id":"ht-just-a-brother-13","parent":"ht-just-a-brother-6","author":"npc-super","text":"我把他当做一个很可爱的弟弟。"},
+    {"id":"ht-just-a-brother-14","parent":"ht-just-a-brother-7","author":"npc-super","text":"不是！我只是把他当作很可爱的弟弟而已。"},
+    {"id":"ht-just-a-brother-15","parent":"ht-just-a-brother-3","author":"npc-jia","text":"呀！我想起来了！这不是新来的姜秘书吗！"},
+    {"id":"ht-just-a-brother-16","parent":"ht-just-a-brother-15","author":"npc-yjji","text":"呀……姜秘书真是男女通吃啊……"},
+    {"id":"ht-just-a-brother-17","parent":"ht-just-a-brother-16","author":"npc-momo","text":"原来我的竞争对手不止女生还有男的吗……西八……😇"},
+    {"id":"ht-just-a-brother-18","parent":"ht-just-a-brother","author":"npc-sam","text":"不过所以楼主是姜秘书什么人？"},
+    {"id":"ht-just-a-brother-19","parent":"ht-just-a-brother-18","author":"npc-love-master","text":"问得好，楼主是姜秘书的追求者吗，整个帖子都在吃醋"},
+    {"id":"ht-just-a-brother-20","parent":"ht-just-a-brother-19","author":"npc-super","text":"我不是。"},
+    {"id":"ht-just-a-brother-21","parent":"ht-just-a-brother-20","author":"npc-echo","text":"呀宝贝，你的嘴硬的可以撬开地球了，这就是喜欢啊，喜欢💕"},
+    {"id":"ht-just-a-brother-22","parent":"ht-just-a-brother-21","author":"npc-echo","text":"你的工作做完了吗，滚。"},
+    {"id":"ht-just-a-brother-23","parent":"ht-just-a-brother-22","author":"npc-echo","text":"呀宝贝，你现在都不否认了呢😋"},
+    {"id":"ht-just-a-brother-24","parent":"ht-just-a-brother","author":"npc-yala","text":"不过姜秘书不是每天都跟在常务身边吗，感觉至少应该跟常务关系更好吧"},
+    {"id":"ht-just-a-brother-25","parent":"ht-just-a-brother-24","author":"npc-echo","text":"这是你开的小号吗宝贝，好生硬，好努力🥰"},
+    {"id":"ht-just-a-brother-26","parent":"ht-just-a-brother-25","author":"npc-angela","text":"这个叫楼主的宝贝到底是楼主什么人，我要笑死了，没人发现楼主现在已经放弃抵抗了吗😋"},
     {"id":"ht-everland-promo","author":"npc-everland-thread-op","text":"看我在爱宝乐园宣传片里发现了什么\n\n谁还记得上周那个热度很高但是神秘消失的帖子，慕名去搜了一下常务拉着秘书笑的图片，然后就搜出来这个……","date":"2026/11/10","time":"23:45","topic":"隐秘的泰钢","images":["post-attachments/everland-promo-1.webp","post-attachments/everland-promo-2.webp","post-attachments/everland-promo-3.webp"],"credit":"转自@西瓜椰椰"},
     {"id":"ht-everland-promo-1","parent":"ht-everland-promo","author":"npc-evan","text":"等等……？这是常务？"},
     {"id":"ht-everland-promo-2","parent":"ht-everland-promo","author":"npc-contact-skeptic","text":"常务竟然会搂着秘书笑吗……看来是我起太早了还没睡醒"},
@@ -1018,13 +1087,19 @@
       const path = asset.replace(/^\//, "");
       const src = /^https?:\/\//i.test(asset) ? asset :
         storyAsset(path.includes('/') ? path : 'x/posts/' + path + '.jpg');
-      const button = node('button');
-      button.type = 'button';
-      button.setAttribute('aria-label','查看配图 '+(index+1));
       const image = node('img');
       image.src = src;
       image.alt = '配图 '+(index+1);
       image.loading = 'lazy';
+      if (post.imageZoom === false) {
+        const tile = node('div','','x-post-photo-static');
+        tile.append(image);
+        gallery.append(tile);
+        return;
+      }
+      const button = node('button');
+      button.type = 'button';
+      button.setAttribute('aria-label','查看配图 '+(index+1));
       button.append(image);
       button.onclick = () => {
         byId('xPostPhoto').src = src;
