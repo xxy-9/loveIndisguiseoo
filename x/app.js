@@ -588,6 +588,52 @@
   };
 
   const posts = [
+    {"id":"jaehee-hailang-flowers","date":"2026/12/01","time":"12:43","text":"男友突然在看“老夫老妻就不需要浪漫吗”这样的帖子\n\n还经常问我爱不爱他（虽然平时也会这样问）\n\n是哪里让他不安了吗\n\n#家猫","author":"jaehee","locked":true,"credit":"转自@放屁崩海浪"},
+    {"id":"jaehee-hailang-flowers-1","parent":"jaehee-hailang-flowers","author":"jaehee","locked":true,"text":"破案了，因为附近花店停业，有两个礼拜没给他送花了\n\n今天特意绕路买了一束，他眼神一下子就亮了，一边说不用专门绕路去买啦，一边仔细插起来，换了几个地方，终于满意了\n\n可爱^_^"},
+    {"id":"jaehee-hailang-rain","date":"2026/12/17","time":"17:32","text":"在公园跑步的时候下雨了，在亭子里避雨，手机也没电了\n\n半天雨还不停，就淋雨跑回家，然后就在路上看到了男友举着伞跑回来的样子\n\n可能是他跑得太着急了，明明有伞也淋湿了，头发贴在白白的脸上，气喘吁吁\n\n最后两只落汤鸡回家了\n\n#家猫","author":"jaehee","locked":true,"credit":"转自@放屁崩海浪"},
+    {"id":"jaehee-hailang-rain-1","parent":"jaehee-hailang-rain","author":"jaehee","locked":true,"text":"一起裹着毯子喝姜汤，好幸福^_^\n\n不过真的能被称之为姜汤吗，他往里面放了一大堆补品，是粥啊粥"},
+    {"id":"jaehee-hailang-cold","date":"2026/12/18","time":"19:08","text":"淋雨第二天，没想到我感冒了，他没感冒\n\n“都说了，我的体质本来就很好。”他语调上扬，一边给我喂药掖被子\n\n有男朋友真好哇\n\n#家猫","author":"jaehee","locked":true,"credit":"转自@放屁崩海浪"},
+    {"id":"jaehee-hailang-cold-1","parent":"jaehee-hailang-cold","author":"jaehee","locked":true,"text":"哦不，他也感冒了......\n\n说了不要一起睡了，结果半夜抱着被子跑过来抱我 这下好了"},
+    {"id":"yoon-hailang-sick-together","author":"yoon","date":"2026/12/18","time":"19:51","text":"两个人在一起的话，一起生病也是幸福的","credit":"转自@放屁崩海浪"},
+    {"id":"yoon-hailang-sick-together-1","parent":"yoon-hailang-sick-together","author":"yoon","text":"(* ^ 3 ^ )"},
+    {"id":"yoon-hailang-sick-together-2","parent":"yoon-hailang-sick-together","author":"sihyeon","text":"我们宝贝，要帮您叫精神科医生吗"},
+    {"id":"jaehee-locked-handcuffs","date":"2026/11/25","time":"22:14","text":"尹伊俊非要我把手铐带回家是什么毛病？给他铐上了又嫌痛。\n\n真是的，皮肤矜贵得很。\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-handcuffs-1","parent":"jaehee-locked-handcuffs","text":"？","images":["x/posts/jaehee-locked-handcuffs-chat.png"],"imageAspectRatio":"884 / 540","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-scarf","date":"2026/11/26","time":"20:51","text":"今天回家，他突然很害羞地拉我回房间，说有东西送我。\n\n然后掏出一条织得歪歪扭扭的围巾，“这可是我昨天熬夜织的，这样你出外勤就不冷了。”\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-scarf-1","parent":"jaehee-locked-scarf","text":"难怪昨天他跑去客房睡...凌晨又跑回来黏我。","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-matching-outfits","date":"2026/12/05","time":"08:37","text":"每天都有新花样。\n\n今天让我跟他穿情侣装。我说我要穿警服怎么办？\n\n“那你穿里面不就好了，正好是最贴近皮肤的一层。”\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-matching-outfits-1","parent":"jaehee-locked-matching-outfits","text":"他这莫名其妙的脸红是怎么回事？莫名其妙的抿嘴害羞又是怎么回事？😳😳","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-library-date","date":"2026/12/12","time":"17:26","text":"跟我去图书馆看书说是date，结果他居然睡着了，位置还是靠窗边。\n\n唉害得我一直抬手给他挡了一下午的太阳，肌肉都酸了...\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-library-date-1","parent":"jaehee-locked-library-date","text":"他故意的吧。","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-bicycle","date":"2026/12/16","time":"19:43","text":"他最近特别沉迷锻炼，反常。\n\n拉着我又是运动又是骑自行车。前两天买了一辆蓝牙音响自行车是什么鬼...\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-bicycle-1","parent":"jaehee-locked-bicycle","text":"非要在公园里跟我一边放情歌一边骑，说是浪漫。丢脸死了真是的...","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-back-early","date":"2026/11/27","time":"14:09","text":"一出差就这死出。\n\n#家猫","images":["x/posts/jaehee-locked-trip-chat.png"],"imageAspectRatio":"1084 / 799","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-back-early-1","parent":"jaehee-locked-back-early","text":"好吧我决定悄悄搭今晚的车提前回去🤓","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-back-early-2","parent":"jaehee-locked-back-early-1","text":"如果我制造惊喜的话他就会钻我怀里黏来粘去，还爱说话，至于在说什么也听不清楚...","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-definition-of-love","date":"2026/12/24","time":"23:08","text":"他突然看了一篇情感文章，有空就向我确认。\n\n会不会烦他？如果要离婚怎么办？如果分开后他一个人晕倒我会来救他吗？\n\n“你会一直爱我的吧？”\n\n#家猫","credit":"转自@Redlink","author":"jaehee","locked":true},
+    {"id":"jaehee-locked-definition-of-love-1","parent":"jaehee-locked-definition-of-love","text":"爱的定义是什么呢？\n\n我跟他说，尹伊俊，我们每天这样呆在一起，牵手散步看阳光，已经是世界上最伟大的爱了。","author":"jaehee","locked":true},
+    {"id":"yoon-locked-guide-puppy","date":"2026/11/24","time":"16:47","text":"小狗，小导盲犬。\n\n跟她逛街的话很安心，有事直接看手机就行。她会一直牵着你，脑袋在前面探来探去的，可爱的要命。\n\n#关于你","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-guide-puppy-1","parent":"yoon-locked-guide-puppy","text":"难道这是姜在熙的计谋！某天没有她我都不想过马路了。","author":"yoon","locked":true},
+    {"id":"yoon-locked-guide-puppy-2","parent":"yoon-locked-guide-puppy-1","text":"好爱她。好像比昨天更爱一点。","author":"yoon","locked":true},
+    {"id":"yoon-locked-business-trip","date":"2026/11/25","time":"18:06","text":"每次她出差我都感觉人生无比灰暗。\n\n#关于你","images":["x/posts/yoon-locked-business-trip-chat.png"],"imageAspectRatio":"1084 / 565","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-business-trip-1","parent":"yoon-locked-business-trip","text":"说是几天不见给我带礼物了！？会是什么呢？","author":"yoon","locked":true},
+    {"id":"yoon-locked-wants-a-dog","date":"2026/11/30","time":"11:53","text":"她最近吵着要养狗，我不同意。她说如果我嫌麻烦的话，可以全部由她照顾。\n\n不是因为这个原因...\n\n#关于你","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-wants-a-dog-1","parent":"yoon-locked-wants-a-dog","text":"最近洁莉跟她关系好了，很是亲近。要是再养一条狗，她都没空喜欢我了怎么办。","author":"yoon","locked":true},
+    {"id":"yoon-locked-miss-you","date":"2026/12/05","time":"22:38","text":"最近工作忙，白天没给她发信息。然后她：\n\n#关于你","images":["x/posts/yoon-locked-miss-you-chat.png"],"imageAspectRatio":"1084 / 449","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-miss-you-1","parent":"yoon-locked-miss-you","text":"理论上来说我明天也忍住不发信息的话还能收到一条想你。","author":"yoon","locked":true},
+    {"id":"yoon-locked-miss-you-2","parent":"yoon-locked-miss-you-1","text":"但我忍不住了。","author":"yoon","locked":true},
+    {"id":"yoon-locked-broken-figure","date":"2026/12/16","time":"01:17","text":"晚上跟她窝在秘密基地一起看电影，然后她不小心把我的亚拉手办打碎了...没事💔我原谅她😭😭😭\n\n#关于你","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-broken-figure-1","parent":"yoon-locked-broken-figure","text":"她怎么那么可爱？一直在道歉，深夜躺在床上，她以为我睡着了还要趴到我耳边小声说对不起...","author":"yoon","locked":true},
+    {"id":"yoon-locked-waiting-for-her","date":"2026/12/19","time":"19:42","text":"给她煎好牛排，热了牛奶，洗完水果，等她回家。\n\n时贤说真羡慕我啊，我说那当然，在熙全世界只有一个。结果他说是羡慕我给她做饭...没情调。\n\n#关于你","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-waiting-for-her-1","parent":"yoon-locked-waiting-for-her","text":"全世界都该来羡慕我吧，我可是姜在熙的男人。 🤓","author":"yoon","locked":true},
+    {"id":"yoon-locked-christmas-kisses","date":"2026/12/25","time":"22:09","text":"姜在熙，她今天出门居然忘记亲我。这可是圣诞节，我要生气了。\n\n#关于你","author":"yoon","locked":true,"credit":"转自@Redlink"},
+    {"id":"yoon-locked-christmas-kisses-1","parent":"yoon-locked-christmas-kisses","text":"回来后她问我为什么闷闷不乐，问了半天没猜中一个。最后她决定不思考了捧起我的脸亲了十几口。","author":"yoon","locked":true},
+    {"id":"yoon-locked-christmas-kisses-2","parent":"yoon-locked-christmas-kisses-1","text":"我要晕了...","author":"yoon","locked":true},
+    {"id":"tg3-wedding","author":"taegang","text":"【泰钢喜讯】恭喜尹伊俊常务和姜在熙喜结连理❤️🎉\n\n想知道详情？去公司内网看喜事公告吧！","date":"2026/11/25","time":"20:33","images":["x/posts/tg3-wedding.webp"]},
+    {"id":"tg3-number-one-fan","author":"taegang","text":"【快讯】泰钢集团尹伊俊常务，正式获封前随行秘书姜在熙的「官方头号粉丝」！\n\n详情应该很快就能在泰钢集团的内部喜事公告栏看到啦 ^^","date":"2026/11/25","time":"08:39","images":["x/posts/tg3-number-one-fan.jpg"]},
+    {"id":"tg3-exclusive-closeup","author":"taegang","text":"【独家到手】就是那张在泰钢内部传疯了的照片！这回，泰钢快讯拿到了超近距离特写。","date":"2026/11/23","time":"21:12","images":["x/posts/tg3-exclusive-closeup.jpg"]},
+    {"id":"tg3-off-duty","author":"taegang","text":"【实时投稿】前随行秘书姜在熙的日常被拍到了，打扮得随随便便，颜值还是让人移不开眼。\n\n说真的，光看姜秘书这张脸，我就懂尹常务为什么连婚约都退了……嗯。","date":"2026/11/22","time":"20:48","images":["x/posts/tg3-off-duty.jpg"]},
+    {"id":"tg3-walking-together","author":"taegang","text":"【独家】这俩一谈起恋爱，光是并肩走路都能笑开花。","date":"2026/11/22","time":"22:16","video":"tg3-walking-together","poster":"tg3-walking-together"},
     {"id":"jeong-back-from-leave","author":"secretary","text":"我不在的几天发生什么了吗。？姜秘书是怎么在一周之内和常务变得那么熟的🥲","date":"2026/11/08","time":"13:07","images":["x/posts/jeong-back-from-leave.jpg"],"credit":"转自@西瓜椰椰"},
     {"id":"jeong-back-from-leave-1","parent":"jeong-back-from-leave","author":"sihyeon","text":"所以你看到什么了，这俩人为什么这个表情看着你"},
     {"id":"jeong-back-from-leave-2","parent":"jeong-back-from-leave-1","author":"secretary","text":"姜秘书竟然敢每一句都顶撞常务，常务让闭嘴以后还说出让常务报销出租车账单……我一直跪在地上震惊的看着他们，然后突然就被这样看了🥲"},
@@ -1100,6 +1146,7 @@
       const button = node('button');
       button.type = 'button';
       button.setAttribute('aria-label','查看配图 '+(index+1));
+      if (post.imageAspectRatio) button.style.aspectRatio = post.imageAspectRatio;
       button.append(image);
       button.onclick = () => {
         byId('xPostPhoto').src = src;
